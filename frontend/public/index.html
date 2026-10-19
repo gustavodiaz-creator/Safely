@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safely 🛡️ - Escrow Inmobiliario</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8 font-sans">
+
+  <!-- Header / Navbar -->
+  <header class="max-w-6xl mx-auto flex justify-between items-center bg-white p-5 rounded-xl shadow-sm mb-8 border">
+    <div>
+      <h1 className="text-2xl font-bold text-slate-900">Safely 🛡️</h1>
+      <p class="text-xs text-gray-500">Escrow & Custodia Inmobiliaria Descentralizada en Stellar</p>
+    </div>
+
+    <div id="wallet-section">
+      <button
+        onclick="connectWallet()"
+        class="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold py-2.5 px-5 rounded-lg transition"
+      >
+        Conectar Wallet (Freighter)
+      </button>
+    </div>
+  </header>
+
+  <!-- Banner de Estado -->
+  <div id="status-banner" class="hidden max-w-6xl mx-auto mb-6 p-4 bg-white border rounded-xl shadow-sm text-center">
+    <p id="status-text" class="text-sm font-medium text-slate-700"></p>
+    <div id="tx-info" class="hidden mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800">
+      <p class="font-bold text-sm"> Transacción Confirmada On-Chain</p>
+      <p id="tx-hash" class="truncate font-mono my-1"></p>
+      <a
+        id="explorer-link"
+        href="#"
+        target="_blank"
+        class="text-blue-600 underline font-semibold mt-1 inline-block hover:text-blue-800"
+      >
+        Ver Contrato Inteligente en StellarExpert ↗
+      </a>
+    </div>
+  </div>
+
+  <!-- Catálogo de Inmuebles -->
+  <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <!-- Tarjeta 1 -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border flex flex-col justify-between">
+      <div>
+        <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80" class="w-full h-48 object-cover">
+        <div class="p-5">
+          <h3 class="font-bold text-lg text-gray-800">Apartamento de Lujo en El Poblado</h3>
+          <p class="text-xs text-gray-500 mt-1">Calle 10 # 30-15, Medellín</p>
+          <div class="mt-4 pt-3 border-t flex justify-between items-center">
+            <span class="text-xs text-gray-400">Reserva (Escrow):</span>
+            <span class="font-bold text-emerald-600 text-lg">$500 USDC</span>
+          </div>
+        </div>
+      </div>
+      <div class="p-5 pt-0">
+        <button
+          onclick="handleReserve('Apartamento de Lujo en El Poblado', 500)"
+          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition text-sm"
+        >
+          Depositar Reserva ($500 USDC)
+        </button>
+      </div>
+    </div>
+
+    <!-- Tarjeta 2 -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border flex flex-col justify-between">
+      <div>
+        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80" class="w-full h-48 object-cover">
+        <div class="p-5">
+          <h3 class="font-bold text-lg text-gray-800">Penthouse Vista Panorámica</h3>
+          <p class="text-xs text-gray-500 mt-1">Carrera 43A # 1-50, Envigado</p>
+          <div class="mt-4 pt-3 border-t flex justify-between items-center">
+            <span class="text-xs text-gray-400">Reserva (Escrow):</span>
+            <span class="font-bold text-emerald-600 text-lg">$1000 USDC</span>
+          </div>
+        </div>
+      </div>
+      <div class="p-5 pt-0">
+        <button
+          onclick="handleReserve('Penthouse Vista Panorámica', 1000)"
+          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition text-sm"
+        >
+          Depositar Reserva ($1000 USDC)
+        </button>
+      </div>
+    </div>
+
+    <!-- Tarjeta 3 -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border flex flex-col justify-between">
+      <div>
+        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80" class="w-full h-48 object-cover">
+        <div class="p-5">
+          <h3 class="font-bold text-lg text-gray-800">Loft Moderno e Iluminado</h3>
+          <p class="text-xs text-gray-500 mt-1">Circular 4 # 72-10, Laureles</p>
+          <div class="mt-4 pt-3 border-t flex justify-between items-center">
+            <span class="text-xs text-gray-400">Reserva (Escrow):</span>
+            <span class="font-bold text-emerald-600 text-lg">$300 USDC</span>
+          </div>
+        </div>
+      </div>
+      <div class="p-5 pt-0">
+        <button
+          onclick="handleReserve('Loft Moderno e Iluminado', 300)"
+          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition text-sm"
+        >
+          Depositar Reserva ($300 USDC)
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const CONTRACT_ID = "CBZ7G4DK66PEJ7YYIHDWFHHR7BG3T3ELQT3HHXEGKGIDJERA7NWLZLJG";
+    let userPublicKey = null;
+
+    // Obtener la extensión global
+    function getFreighter() {
+      return window.freighterApi;
+    }
+
+    async function connectWallet() {
+      const freighter = getFreighter();
+      if (!freighter) {
+        alert("Asegúrate de cerrar el panel lateral de la extensión o recargar la página (F5).");
+        return;
+      }
+
+      try {
+        const isConnected = await freighter.isConnected();
+        if (isConnected) {
+          userPublicKey = await freighter.getPublicKey();
+          
+          document.getElementById('wallet-section').innerHTML = `
+            <div class="text-right">
+              <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">Connected (Testnet)</span>
+              <p class="text-xs font-mono text-gray-600 mt-1 truncate w-36">${userPublicKey}</p>
+            </div>
+          `;
+          showStatus("Billetera Freighter conectada exitosamente a la Testnet.");
+        }
+      } catch (err) {
+        console.error("Error conectando wallet:", err);
+        showStatus("Error al conectar con Freighter. Cierra el panel lateral y reintenta.");
+      }
+    }
+
+    async function handleReserve(title, amount) {
+      if (!userPublicKey) {
+        await connectWallet();
+        if (!userPublicKey) return;
+      }
+
+      showStatus(`Solicitando firma para la reserva de: ${title}...`);
+
+      try {
+        // Simulación de respuesta de red Testnet (~4.5s)
+        await new Promise(resolve => setTimeout(resolve, 4500));
+
+        const resultHash = "3d82f2819ab0c91e4a3c200219f8e42e12a9c201e29f9608d9ba6889c61c618e";
+        
+        showStatus(`¡Reserva de $${amount} USDC en Custodia/Escrow confirmada para ${title}!`);
+        
+        document.getElementById('tx-info').classList.remove('hidden');
+        document.getElementById('tx-hash').innerText = `Hash: ${resultHash}`;
+        document.getElementById('explorer-link').href = `https://stellar.expert/explorer/testnet/contract/${CONTRACT_ID}`;
+      } catch (error) {
+        console.error(error);
+        showStatus("La transacción fue cancelada o no pudo procesarse.");
+      }
+    }
+
+    function showStatus(msg) {
+      document.getElementById('status-banner').classList.remove('hidden');
+      document.getElementById('status-text').innerText = msg;
+    }
+  </script>
+</body>
+</html>

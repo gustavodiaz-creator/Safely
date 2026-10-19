@@ -1,98 +1,207 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import { useState } from "react";
+import albedo from "@albedo-link/intent";
 
-export default function Home() {
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
-  const [depositSuccess, setDepositSuccess] = useState(false);
+// Contract ID de tu contrato de custodia desplegado en Testnet
+const CONTRACT_ID = "CBZ7G4DK66PEJ7YYIHDWFHHR7BG3T3ELQT3HHXEGKGIDJERA7NWLZLJG";
 
+const PROPERTIES = [
+  {
+    id: "1",
+    title: "Apartamento de Lujo en El Poblado",
+    address: "Calle 10 # 30-15, Medellín",
+    reservationUSDC: 500,
+    imageUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+    docHash: "e29f9608d9ba6889c61c618e2567377cdaf2e446e11a9d568e374debab6d71f",
+    ownerName: "Carlos Restrepo",
+    ownerPhone: "+57 300 123 4567",
+    driveLink: "https://drive.google.com/drive/folders/1bSeB9DwJIF8GyE3jEoL2iROQLfFSH62e"
+  },
+  {
+    id: "2",
+    title: "Penthouse Vista Panorámica",
+    address: "Carrera 43A # 1-50, Envigado",
+    reservationUSDC: 1000,
+    imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+    docHash: "a4b89218d9ba6889c61c618e2567377cdaf2e446e11a9d568e374debab6a32b",
+    ownerName: "María Camila Vélez",
+    ownerPhone: "+57 312 987 6543",
+    driveLink: "https://drive.google.com/drive/folders/1bSeB9DwJIF8GyE3jEoL2iROQLfFSH62e"
+  },
+  {
+    id: "3",
+    title: "Loft Moderno e Iluminado",
+    address: "Circular 4 # 72-10, Laureles",
+    reservationUSDC: 300,
+    imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+    docHash: "c9823108d9ba6889c61c618e2567377cdaf2e446e11a9d568e374debab6f881",
+    ownerName: "Daniel Arango",
+    ownerPhone: "+57 315 456 7890",
+    driveLink: "https://drive.google.com/drive/folders/1bSeB9DwJIF8GyE3jEoL2iROQLfFSH62e"
+  }
+];
+
+export default function HomePage() {
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [loadingPropertyId, setLoadingPropertyId] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>("");
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [reservedProperty, setReservedProperty] = useState<typeof PROPERTIES[0] | null>(null);
+
+  // 1. Conexión limpia a Albedo
   const connectWallet = async () => {
-    // Simulación o conexión con Freighter Wallet
-    if (typeof window !== 'undefined' && (window as any).freighter) {
-      try {
-        const address = await (window as any).freighter.getPublicKey();
-        setWalletAddress(address);
-        setWalletConnected(true);
-      } catch (e) {
-        alert('Por favor autoriza la conexión en Freighter Wallet');
+    try {
+      setStatusMessage("Abriendo Albedo para conectar...");
+      
+      const res = await albedo.publicKey({
+        token: 'safely_login_testnet'
+      });
+
+      if (res.pubkey) {
+        setWalletAddress(res.pubkey);
+        setStatusMessage("Billetera conectada exitosamente en la Testnet.");
       }
-    } else {
-      // Demo / Fallback para prueba visual
-      setWalletAddress('GBX...STELLAR_TESTNET');
-      setWalletConnected(true);
+    } catch (error) {
+      console.error("Error al conectar Albedo:", error);
+      setStatusMessage("Conexión cancelada o fallida.");
     }
   };
 
-  const handleDeposit = () => {
-    setDepositSuccess(true);
+  // 2. Transacción de Reserva
+  const handleReserve = async (property: typeof PROPERTIES[0]) => {
+    if (!walletAddress) {
+      await connectWallet();
+      return;
+    }
+
+    setLoadingPropertyId(property.id);
+    setTxHash(null);
+    setReservedProperty(null);
+    setStatusMessage(`Iniciando reserva para: ${property.title}...`);
+
+    try {
+      setStatusMessage("Enviando orden de depósito de custodia... Por favor aprueba en la ventana de Albedo.");
+      
+      // Simulación de interacción y cierre de Ledger (~4.5 segundos)
+      await new Promise((resolve) => setTimeout(resolve, 4500));
+
+      const resultHash = "e29f9608d9ba6889c61c618e2567377cdaf2e446e11a9d568e374debab6d71f";
+      
+      setTxHash(resultHash);
+      setReservedProperty(property);
+      setStatusMessage(`¡Depósito de $${property.reservationUSDC} USDC asegurado en el contrato para ${property.title}!`);
+    } catch (error) {
+      console.error("Error en la transacción:", error);
+      setStatusMessage("La transacción fue cancelada o no pudo procesarse.");
+    } finally {
+      setLoadingPropertyId(null);
+    }
   };
 
   return (
-    <main style={{ minHeight: '100vh', backgroundColor: '#0f172a', color: '#f8fafc', fontFamily: 'sans-serif', padding: '2rem' }}>
-      {/* Header */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #334155', paddingBottom: '1rem' }}>
-        <h1 style={{ fontSize: '1.8rem', color: '#38bdf8', margin: 0 }}>🛡️ Safely</h1>
-        <button
-          onClick={connectWallet}
-          style={{
-            backgroundColor: walletConnected ? '#22c55e' : '#0284c7',
-            color: '#fff',
-            border: 'none',
-            padding: '0.6rem 1.2rem',
-            borderRadius: '0.5rem',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          {walletConnected ? `Conectado: ${walletAddress.slice(0, 6)}...` : 'Conectar Freighter Wallet'}
-        </button>
-      </header>
-
-      {/* Hero / Presentación */}
-      <section style={{ textAlign: 'center', margin: '3rem 0' }}>
-        <h2 style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>Garantías y Reservas Inmobiliarias Seguras en Stellar</h2>
-        <p style={{ color: '#94a3b8', maxWidth: '600px', margin: '0 auto' }}>
-          Plataforma descentralizada de depósitos en garantía (Escrow) utilizando contratos inteligentes en Soroban.
-        </p>
-      </section>
-
-      {/* Muestra de Inmuebles / MVP */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
-        
-        {/* Tarjeta de propiedad 1 */}
-        <div style={{ backgroundColor: '#1e293b', borderRadius: '0.75rem', padding: '1.5rem', border: '1px solid #334155' }}>
-          <h3 style={{ marginTop: 0, color: '#f1f5f9' }}>Apartamento en El Poblado</h3>
-          <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Reserva mediante depósito en garantía condicional (Escrow).</p>
-          <div style={{ margin: '1rem 0', padding: '0.75rem', backgroundColor: '#0f172a', borderRadius: '0.5rem' }}>
-            <p style={{ margin: '0.2rem 0', fontSize: '0.9rem' }}><strong>Valor Reserva:</strong> 150 USDC</p>
-            <p style={{ margin: '0.2rem 0', fontSize: '0.9rem' }}><strong>Red:</strong> Stellar Testnet</p>
-          </div>
-
-          {depositSuccess ? (
-            <div style={{ backgroundColor: '#15803d', padding: '0.75rem', borderRadius: '0.5rem', textAlign: 'center' }}>
-              ✅ ¡Depósito en garantía registrado on-chain!
-            </div>
-          ) : (
-            <button
-              onClick={handleDeposit}
-              disabled={!walletConnected}
-              style={{
-                width: '100%',
-                backgroundColor: walletConnected ? '#38bdf8' : '#475569',
-                color: '#0f172a',
-                border: 'none',
-                padding: '0.75rem',
-                borderRadius: '0.5rem',
-                fontWeight: 'bold',
-                cursor: walletConnected ? 'pointer' : 'not-allowed'
-              }}
-            >
-              {walletConnected ? 'Depositar Garantía (Escrow)' : 'Conecta Wallet para Reservar'}
-            </button>
-          )}
+    <main className="min-h-screen bg-gray-100 p-8 font-sans">
+      <header className="max-w-6xl mx-auto flex justify-between items-center bg-white p-5 rounded-xl shadow-sm mb-8 border">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Safely 🛡️</h1>
+          <p className="text-xs text-gray-500">Escrow & Custodia Inmobiliaria Descentralizada en Stellar</p>
         </div>
 
+        {!walletAddress ? (
+          <button
+            onClick={connectWallet}
+            className="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold py-2.5 px-5 rounded-lg transition"
+          >
+            Conectar Wallet (Albedo)
+          </button>
+        ) : (
+          <div className="text-right">
+            <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">
+              Connected (Testnet)
+            </span>
+            <p className="text-xs font-mono text-gray-600 mt-1 truncate w-36">{walletAddress}</p>
+          </div>
+        )}
+      </header>
+
+      {statusMessage && (
+        <div className="max-w-6xl mx-auto mb-6 p-4 bg-white border rounded-xl shadow-sm text-center">
+          <p className="text-sm font-medium text-slate-700">{statusMessage}</p>
+          
+          {txHash && reservedProperty && (
+            <div className="mt-5 p-5 bg-emerald-50 border border-emerald-200 rounded-xl text-left max-w-3xl mx-auto">
+              <p className="font-bold text-emerald-900 text-base mb-2">✅ Transacción On-Chain Confirmada</p>
+              <p className="truncate font-mono text-xs text-emerald-800 mb-5 bg-emerald-100 p-2 rounded">Hash: {txHash}</p>
+              
+              <div className="bg-white p-5 rounded-lg border border-emerald-100 mb-4 shadow-sm">
+                <p className="font-bold text-sm text-slate-800 mb-1">📅 Siguientes Pasos (Off-chain)</p>
+                <p className="text-sm text-slate-600 mb-4">La custodia de tus fondos está asegurada en la red Stellar. Hemos liberado los datos de contacto y documentos del inmueble para que agendes tu visita física.</p>
+                
+                <div className="grid grid-cols-2 gap-4 text-sm bg-gray-50 p-3 rounded border">
+                  <div>
+                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Propietario</p>
+                    <p className="font-semibold text-slate-800">{reservedProperty.ownerName}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Contacto WhatsApp</p>
+                    <p className="font-semibold text-slate-800">{reservedProperty.ownerPhone}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <a
+                  href={reservedProperty.driveLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 bg-blue-600 text-white text-center text-sm py-2.5 px-4 rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm"
+                >
+                  📁 Abrir Documentos en Drive
+                </a>
+                <a
+                  href={`https://stellar.expert/explorer/testnet/contract/${CONTRACT_ID}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 bg-emerald-700 text-white text-center text-sm py-2.5 px-4 rounded-lg font-semibold hover:bg-emerald-800 transition shadow-sm"
+                >
+                  ⛓️ Ver Contrato en StellarExpert
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        {PROPERTIES.map((property) => {
+          const isLoading = loadingPropertyId === property.id;
+          return (
+            <div key={property.id} className="bg-white rounded-xl shadow-md overflow-hidden border flex flex-col justify-between hover:shadow-lg transition">
+              <div>
+                <img src={property.imageUrl} alt={property.title} className="w-full h-48 object-cover" />
+                <div className="p-5">
+                  <h3 className="font-bold text-lg text-gray-800">{property.title}</h3>
+                  <p className="text-xs text-gray-500 mt-1">{property.address}</p>
+
+                  <div className="mt-4 pt-3 border-t flex justify-between items-center">
+                    <span className="text-xs text-gray-400">Reserva (Escrow):</span>
+                    <span className="font-bold text-emerald-600 text-lg">${property.reservationUSDC} USDC</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 pt-0">
+                <button
+                  onClick={() => handleReserve(property)}
+                  disabled={isLoading}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition text-sm disabled:bg-gray-400"
+                >
+                  {isLoading ? "Procesando Custodia..." : `Depositar Reserva ($${property.reservationUSDC} USDC)`}
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </main>
   );

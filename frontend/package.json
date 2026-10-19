@@ -9,9 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@albedo-link/intent": "^0.13.0",
+    "@stellar/freighter-api": "^6.0.1",
     "next": "16.4.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "safely-client": "file:../packages/safely-client"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
