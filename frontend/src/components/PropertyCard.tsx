@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { isConnected, getPublicKey, signTransaction } from "@stellar/freighter-api";
-import { Client } from "safely-client"; // Tu cliente generado
 import { Property } from "../data/properties";
 
 interface Props {
